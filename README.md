@@ -18,3 +18,23 @@ You can either run this command for each new shell session or add it to your she
 ```sh
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:<path/to/onnxruntime/lib>"
 ```
+
+## Depending on `hs-onnxruntime-capi`
+
+If you add a dependency on `hs-onnxruntime-capi` on your Cabal package, `--extra-lib-dirs` will not suffice.
+Instead, you have to declare the extra-lib-dirs in your `cabal.project` file:
+
+`your-package.cabal`:
+```
+...
+    build-depends:    base, hs-onnxruntime-capi
+...
+```
+
+Example `cabal.project`:
+```
+packages: .
+
+package hs-onnxruntime-capi
+    extra-lib-dirs: /nix/store/cr5434i7j84782zpx8a1svqqxk8yfp0n-onnxruntime-1.21.0/lib/
+```
