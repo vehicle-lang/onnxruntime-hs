@@ -36,6 +36,7 @@ test_ortApiGetModelTypeInfo = do
         -- Get OrtApi
         ortApiBase <- ortGetApiBase
         ortApi <- ortApiBaseGetApi ortApiBase ortApiVersion
+        allocator <- ortApiGetAllocatorWithDefaultOptions ortApi
         -- Create OrtEnv
         let logid = "test_ortApiRun"
         ortEnv <- ortApiCreateEnv ortApi OrtLoggingLevelFatal logid
@@ -58,6 +59,8 @@ test_ortApiGetModelTypeInfo = do
             inputDims @?= [1, 2]
             inputTensorElementType <- ortApiGetTensorElementType inputTypeAndShape
             inputTensorElementType @?= ONNXTensorElementDataTypeFloat
+            inputName <- ortApiSessionGetInputName ortSession inputIndex allocator
+            inputName @?= "input_1"
         -- Get the model output type and shape info
         outputCount <- ortApiSessionGetOutputCount ortSession
         outputCount @?= 1
@@ -70,6 +73,8 @@ test_ortApiGetModelTypeInfo = do
             outputDims @?= [1, 1]
             outputTensorElementType <- ortApiGetTensorElementType outputTypeAndShape
             outputTensorElementType @?= ONNXTensorElementDataTypeFloat
+            outputName <- ortApiSessionGetOutputName ortSession outputIndex allocator
+            outputName @?= "dense_3"
 
 test_ortApiRun :: TestTree
 test_ortApiRun = do
@@ -89,11 +94,9 @@ test_ortApiRun = do
         ortSession <- ortApiCreateSession ortEnv modelPath ortSessionOptions
         -- Create OrtRunOptions
         ortRunOptions <- ortApiCreateRunOptions ortApi
-        -- Create OrtMemoryInfo
-        ortMemoryInfo <- ortApiCreateCpuMemoryInfo ortApi OrtDeviceAllocator OrtMemTypeDefault
         -- Create input OrtValue
         let input1Data = VS.fromList [10, 10] :: Vector Float
-        ortApiWithTensorWithDataAsOrtValue ortMemoryInfo input1Data [1, 2] $ \input1 -> do
+        ortApiWithTensorWithDataAsOrtValue ortApi input1Data [1, 2] $ \input1 -> do
             -- Run
             let inputNames = ["input_1"]
             let outputNames = ["dense_3"]
